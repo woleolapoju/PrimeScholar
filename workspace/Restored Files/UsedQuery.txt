@@ -1,0 +1,87 @@
+ICU
+
+SELECT    [Beneficiary Name], [Beneficiary Address 1], [Beneficiary Address 2], [Beneficiary Country Code] AS Country, [Beneficiary Country Code], [Beneficiary Bank Name], 
+                      [Beneficiary Account Number], [Beneficiary Swift Code], [Beneficiary Bank Address], '' AS BankCity, [Beneficiary Country Code] AS BankCountry, [Payment Currency], [Intermediary Bank], 
+                      [Intermediary Bank Code], [Intermediary Bank Address], '' AS InterBankCity, '' AS InterBankCountry, '' AS SchID, '' AS SchName,'' AS SchAddr, '' AS SchCity, '' AS SchCountry, '' AS Remark, 1 AS Active, '' AS IdNum, 
+                      'ICU' AS StudyProgram, '' AS PassNum, NULL AS IssueDate, NULL AS Expirry, NULL AS DOB, '' AS Email, '' AS Telephone, '' AS IBAN, '' AS SortCode
+FROM         ICU
+
+____________________________________________________________
+
+INSTITUTION
+
+SELECT    [Beneficiary Name], [Beneficiary Address 1], [Beneficiary Address 2], [Beneficiary Country Code] AS Country, [Beneficiary Country Code], [Beneficiary Bank Name], 
+                      [Beneficiary Account Number], [Beneficiary Swift Code],[Payment Currency], [Beneficiary Bank Address], '' AS BankCity, [Beneficiary Country Code] AS BankCountry, [Intermediary Bank], 
+                      [Intermediary Bank Code], [Intermediary Bank Address], '' AS InterBankCountry,'' AS InterBankCity, '' AS Remark, 1 AS Active, '' AS IBAN, '' AS SortCode
+FROM         INSTITION$
+
+_____________________________________________________________________
+
+MSC
+
+SELECT    [Beneficiary Name], [Beneficiary Address 1], [Beneficiary Address 2], [Beneficiary Country Code] AS Country, [Beneficiary Country Code], [Beneficiary Bank Name], 
+                      [Beneficiary Account Number], [Beneficiary Swift Code], [Beneficiary Bank Address], '' AS BankCity, [Beneficiary Country Code] AS BankCountry, [Payment Currency], [Intermediary Bank], 
+                      [Intermediary Bank Code], [Intermediary Bank Address], '' AS InterBankCity, '' AS InterBankCountry, '' AS SchID, '' AS SchName,'' AS SchAddr, '' AS SchCity, '' AS SchCountry, '' AS Remark, 1 AS Active, '' AS IdNum, 
+                      'MSC' AS StudyProgram, '' AS PassNum, NULL AS IssueDate, NULL AS Expirry, NULL AS DOB, '' AS Email, '' AS Telephone, '' AS IBAN, '' AS SortCode
+FROM         MSC
+
+_______________________________________________________________________________
+
+PHD
+
+SELECT    [Beneficiary Name], [Beneficiary Address 1], [Beneficiary Address 2], [Beneficiary Country Code] AS Country, [Beneficiary Country Code], [Beneficiary Bank Name], 
+                      [Beneficiary Account Number], [Beneficiary Swift Code], [Beneficiary Bank Address], '' AS BankCity, [Beneficiary Country Code] AS BankCountry, [Payment Currency], [Intermediary Bank], 
+                      [Intermediary Bank Code], [Intermediary Bank Address], '' AS InterBankCity, '' AS InterBankCountry, '' AS SchID, '' AS SchName,'' AS SchAddr, '' AS SchCity, '' AS SchCountry, '' AS Remark, 1 AS Active, '' AS IdNum, 
+                      'PHD' AS StudyProgram, '' AS PassNum, NULL AS IssueDate, NULL AS Expirry, NULL AS DOB, '' AS Email, '' AS Telephone, '' AS IBAN, '' AS SortCode
+FROM         PHD
+
+___________________________________________________________________________________
+
+UG
+
+SELECT    [Beneficiary Name], [Beneficiary Address 1], [Beneficiary Address 2], [Beneficiary Country Code] AS Country, [Beneficiary Country Code], [Beneficiary Bank Name], 
+                      [Beneficiary Account Number], [Beneficiary Swift Code], [Beneficiary Bank Address], '' AS BankCity, [Beneficiary Country Code] AS BankCountry, [Payment Currency], [Intermediary Bank], 
+                      [Intermediary Bank Code], [Intermediary Bank Address], '' AS InterBankCity, '' AS InterBankCountry, '' AS SchID, '' AS SchName,'' AS SchAddr, '' AS SchCity, '' AS SchCountry, '' AS Remark, 1 AS Active, '' AS IdNum, 
+                      'UG' AS StudyProgram, '' AS PassNum, NULL AS IssueDate, NULL AS Expirry, NULL AS DOB, '' AS Email, '' AS Telephone, '' AS IBAN, '' AS SortCode
+FROM         UG
+
+_____________________________________________________________________________________
+
+STAKEHOLDER
+
+MPR
+
+
+  SELECT    [Beneficiary Name], [Beneficiary Address 1], [Beneficiary Address 2], [Beneficiary Country Code] AS Country, [Beneficiary Country Code], [Beneficiary Bank Name], 
+                      [Beneficiary Account Number], [Beneficiary Swift Code], [Beneficiary Bank Address], '' AS BankCity, [Beneficiary Country Code] AS BankCountry, [Payment Currency], [Intermediary Bank], 
+                      [Intermediary Bank Code], [Intermediary Bank Address], '' AS InterBankCity, '' AS InterBankCountry, '' AS SchID, '' AS SchName,'' AS SchAddr, '' AS SchCity, '' AS SchCountry, '' AS Remark, 1 AS Active, '' AS IdNum, 
+                      '' AS StudyProgram, '' AS PassNum, NULL AS IssueDate, NULL AS Expirry, NULL AS DOB, '' AS Email, '' AS Telephone, 
+                      'MPR' AS Agency,'' AS IBAN, '' AS SortCode
+FROM         MPR
+
+_____________________________________________________________________
+
+
+STAKEHOLDER
+
+NASS
+
+
+  SELECT    [Beneficiary Name], [Beneficiary Address 1], [Beneficiary Address 2], [Beneficiary Country Code] AS Country, [Beneficiary Country Code], [Beneficiary Bank Name], 
+                      [Beneficiary Account Number], [Beneficiary Swift Code], [Beneficiary Bank Address], '' AS BankCity, [Beneficiary Country Code] AS BankCountry, [Payment Currency], [Intermediary Bank], 
+                      [Intermediary Bank Code], [Intermediary Bank Address], '' AS InterBankCity, '' AS InterBankCountry, '' AS SchID, '' AS SchName,'' AS SchAddr, '' AS SchCity, '' AS SchCountry, '' AS Remark, 1 AS Active, '' AS IdNum, 
+                      '' AS StudyProgram, '' AS PassNum, NULL AS IssueDate, NULL AS Expirry, NULL AS DOB, '' AS Email, '' AS Telephone, 
+                      'NASS MEMBER' AS Agency,'' AS IBAN, '' AS SortCode
+FROM         NASS
+
+______________________________________________________________________________________
+
+STAFF
+
+ SELECT    [Beneficiary Name], [Beneficiary Address 1], [Beneficiary Address 2], [Beneficiary Country Code] AS Country, [Beneficiary Country Code], [Beneficiary Bank Name], 
+                      [Beneficiary Account Number], [Beneficiary Swift Code], [Beneficiary Bank Address], '' AS BankCity, [Beneficiary Country Code] AS BankCountry, [Payment Currency], [Intermediary Bank], 
+                      [Intermediary Bank Code], [Intermediary Bank Address], '' AS InterBankCity, '' AS InterBankCountry, '' AS SchID, '' AS SchName,'' AS SchAddr, '' AS SchCity, '' AS SchCountry, '' AS Remark, 1 AS Active, '' AS IdNum, 
+                      '' AS StudyProgram, '' AS PassNum, NULL AS IssueDate, NULL AS Expirry, NULL AS DOB, '' AS Email, '' AS Telephone, 
+                      'PTDF' AS Agency,'' AS IBAN, '' AS SortCode
+FROM         STAFF
+_________________________________________________________________________________________________

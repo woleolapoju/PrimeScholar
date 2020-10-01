@@ -1,0 +1,771 @@
+Imports System.Data.Sqlclient
+Imports System.IO
+Public Class FrmRegistrationSchOld
+    Dim ReturnID As String
+    Dim selectedTVQry As String
+    Dim OnlyFirstItem As Boolean = False
+    Private bindingSource As New BindingSource()
+    Private dataAdapter As New SqlDataAdapter()
+    Dim imageIndex As Integer = 0
+    Public ReturnSchoolID As Integer
+    Dim StoredX As Long
+    Dim StoredY As Long
+    Private Sub FrmRegister_Load(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles MyBase.Load
+        FillSchCountry()
+        LoadCurrencyType()
+        'FillBank()
+        AppHeader1.lblForm.Text = "School Information"
+        Me.DGridList.DataSource = bindingSource
+        DGridList.AutoGenerateColumns = False
+        ' oLoadDbgrid()
+
+        cboCriteria.SelectedIndex = 1
+
+
+        cboCountry.Focus()
+
+        applyGridTheme(DGridList)
+
+        'DGridList.ReadOnly = False '= GetUserAccessDetails("Edit Institution", False)
+        DGridList.ReadOnly = Not GetUserAccessDetails("Edit Institution", False)
+        DGridList.AllowUserToAddRows = GetUserAccessDetails("Add New Institution", False)
+        DGridList.AllowUserToDeleteRows = GetUserAccessDetails("Delete Institution", False)
+
+        DGridList.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize
+        DGridList.Columns("Sn").ReadOnly = True
+
+        'LoadCurrencyType()
+
+        DGridList.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.AllCells
+
+    End Sub
+    Private Sub FillSchCountry()
+        On Error GoTo handler
+        Dim cnSQL As SqlConnection = New SqlConnection(strConnect)
+        Dim cmSQL As SqlCommand = cnSQL.CreateCommand
+        Dim drSQL As SqlDataReader
+
+        cboCountry.Items.Clear()
+        cboCountry.Items.Add("ALL")
+        cmSQL.CommandText = "SELECT DISTINCT SchCountry  FROM RegisterSch ORDER BY SchCountry"
+        cmSQL.CommandType = CommandType.Text
+        cnSQL.Open()
+        drSQL = cmSQL.ExecuteReader()
+        Do While drSQL.Read
+            cboCountry.Items.Add(drSQL.Item("SchCountry").ToString)
+            ' State.Items.Add(drSQL.Item("State").ToString)
+        Loop
+        cmSQL.Connection.Close()
+        cmSQL.Dispose()
+        drSQL.Close()
+        cnSQL.Close()
+        cnSQL.Dispose()
+
+        cboCountry.SelectedIndex = 0
+
+        Exit Sub
+        Resume
+handler:
+        If Err.Number = 5 Then
+            Resume Next
+        Else
+            MsgBox(Err.Description, MsgBoxStyle.Information, strApptitle)
+        End If
+    End Sub
+
+    Private Sub oLoadDbgrid()
+        On Error GoTo errhdl
+        Dim i As Integer
+
+        'FillBank()
+        'oLoadCampCombox("ffff")
+        'DGridList.DataSource = Nothing
+
+        'DGridList.DataSource = bindingSource
+        Dim cnSQL As SqlConnection = New SqlConnection(strConnect)
+        Dim cmSQL As SqlCommand = cnSQL.CreateCommand
+        Dim drSQL As SqlDataReader
+
+        Dim strQry1 As String = ""
+        Dim strCamp As String = ""
+        Dim strQry As String = "SELECT * FROM RegisterSch "
+        If cboCountry.Text <> "ALL" Then strQry1 = " WHERE SchCountry ='" & cboCountry.Text & "'"
+        strQry = strQry + strQry1 + " ORDER BY Sn,SchCountry,SchName"
+        'If strQry1 = "" Then
+        '    cmSQL.CommandText = "FetchAllRegister"
+        '    cmSQL.CommandType = CommandType.StoredProcedure
+        'Else
+        cmSQL.CommandText = strQry
+        cmSQL.CommandType = CommandType.Text
+        'End If
+        dataAdapter = New SqlDataAdapter(cmSQL)
+        Dim commandBuilder As New SqlCommandBuilder(Me.dataAdapter)
+        Dim table As New DataTable()
+        table.Locale = System.Globalization.CultureInfo.InvariantCulture
+        Me.dataAdapter.Fill(table)
+        Me.bindingSource.DataSource = table
+
+        Dim myStyle As New DataGridViewCellStyle
+        Dim myStyle1 As New DataGridViewCellStyle
+        myStyle.ForeColor = Color.Red
+        myStyle1.ForeColor = Color.Black
+        '; myStyle1.Format
+
+        lblCount.Text = GetCount()
+
+        On Error Resume Next
+
+        Dim ik As Integer = 0
+        For ik = 0 To DGridList.RowCount - 1
+            For i = 0 To DGridList.ColumnCount - 1
+                If Len(DGridList.Item(i, ik).Value) > DGridList.Columns(i).FillWeight Then
+                    DGridList.Item(i, ik).Style = myStyle
+                    DGridList.Item(i, ik).Value = Mid(DGridList.Item(i, ik).Value, 1, DGridList.Columns(i).FillWeight)
+                End If
+            Next
+        Next
+
+
+        ' DGridList.Columns(6).HeaderText = "Bank Code"
+
+        Exit Sub
+        Resume
+errhdl:
+        If Err.Number = 91 Or Err.Number = 5 Then
+            Resume Next
+        Else
+            MsgBox(Err.Description, MsgBoxStyle.Information, strApptitle)
+        End If
+
+    End Sub
+    '    Private Sub DGridList_CellEndEdit(ByVal sender As Object, ByVal e As System.Windows.Forms.DataGridViewCellEventArgs) Handles DGridList.CellEndEdit
+    '        On Error GoTo errhdl
+    '        If e.ColumnIndex = 5 Then
+    '            DGridList.Item(5, e.RowIndex).Value = Format(DGridList.Item(5, e.RowIndex).Value, "standard")
+
+    '        End If
+
+    '        Exit Sub
+    'errhdl:
+    '        MsgBox(Err.Description, MsgBoxStyle.Information, strApptitle)
+    '    End Sub
+
+    Private Sub cmdSave_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmdSave.Click
+        On Error GoTo handler
+
+        Me.dataAdapter.Update(CType(bindingSource.DataSource, DataTable))
+        MsgBox("Update successfull", MsgBoxStyle.Information, strApptitle)
+
+        Dim cnSQL As SqlConnection = New SqlConnection(strConnect)
+        Dim cmSQL As SqlCommand = cnSQL.CreateCommand
+        Dim drSQL As SqlDataReader
+
+        cnSQL.Open()
+
+        'cmSQL.CommandText = "UPDATE Register SET Country='NIGERIA' WHERE Country is null OR Country=''"
+        'cmSQL.CommandType = CommandType.Text
+        'cmSQL.ExecuteNonQuery()
+
+        cmSQL.CommandText = "UPDATE Register SET Active=1 WHERE Active is null"
+        cmSQL.CommandType = CommandType.Text
+        cmSQL.ExecuteNonQuery()
+
+        cmSQL.Connection.Close()
+        cmSQL.Dispose()
+        cnSQL.Close()
+        cnSQL.Dispose()
+
+        oLoadDbgrid()
+
+        Exit Sub
+        Resume
+handler:
+        MsgBox(Err.Description, MsgBoxStyle.Information, strApptitle)
+    End Sub
+    Private Sub cmdRefresh_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmdRefresh.Click
+        If PanFilter.Visible = False Then cmdSave.Enabled = True
+        oLoadDbgrid()
+    End Sub
+    Private Sub cmdNew_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmdNew.Click
+        If Not DGridList.IsCurrentCellInEditMode Then
+            DGridList.Focus()
+            DGridList.CurrentCell = DGridList.Rows(DGridList.Rows.Count - 1).Cells("tName")
+            DGridList.Focus()
+            'SendKeys.Send("{BS}")
+
+            'SendKeys.Send("11")
+
+        End If
+    End Sub
+    Private Sub cmdClose_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmdClose.Click
+        Me.Close()
+    End Sub
+
+
+    Function GetCount() As Integer
+        GetCount = 0
+        Dim j As Integer = -1
+        Dim i As Integer
+        For i = 0 To DGridList.Rows.Count - 1
+            j = j + 1
+        Next
+        GetCount = j
+    End Function
+    Private Sub chkSelectAll_CheckedChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles chkSelectAll.CheckedChanged
+        Dim i As Integer
+        For i = 0 To DGridList.RowCount - 1
+            DGridList.Item("Active", i).Value = IIf(chkSelectAll.Checked, 1, 0)
+        Next
+    End Sub
+    Private Sub DGridList_CellClick(ByVal sender As Object, ByVal e As System.Windows.Forms.DataGridViewCellEventArgs) Handles DGridList.CellClick
+
+    End Sub
+    Private Sub DGridList_CellContentClick(ByVal sender As System.Object, ByVal e As DataGridViewCellEventArgs) Handles DGridList.CellContentClick
+        Dim senderGrid = DirectCast(sender, DataGridView)
+
+        If TypeOf senderGrid.Columns(e.ColumnIndex) Is DataGridViewButtonColumn AndAlso e.RowIndex >= 0 Then
+
+        End If
+
+        Exit Sub
+errhdl:
+        MsgBox(Err.Description, vbInformation, strApptitle)
+    End Sub
+
+    'Private Sub DGridList_RowEnter(ByVal sender As Object, ByVal e As System.Windows.Forms.DataGridViewCellEventArgs) Handles DGridList.RowEnter
+    '    If Val(DGridList.Rows(e.RowIndex).Cells("Sn").Value) = 0 Then
+    '        DGridList.Rows(e.RowIndex).Cells("Sn").Value = GetNewSn()
+    '    End If
+    'End Sub
+
+    Private Sub cboCountry_SelectedIndexChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cboCountry.SelectedIndexChanged
+        oLoadDbgrid()
+    End Sub
+    Private Sub cmdFilter_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmdFilter.Click
+        PassFilter(DGridList, tFilter.Text)
+        cmdSave.Enabled = False
+        Exit Sub
+        Resume
+handler:
+        MsgBox(Err.Description, MsgBoxStyle.Information, strApptitle)
+    End Sub
+    Private Sub tFilter_KeyDown(ByVal sender As Object, ByVal e As System.Windows.Forms.KeyEventArgs) Handles tFilter.KeyDown
+        If e.KeyCode = Keys.Enter Then
+            cmdFilter_Click(sender, e)
+        End If
+    End Sub
+    Private Sub PassFilter(ByRef datagridview As DataGridView, ByVal strFilter As String)
+        If chkMultiFilter.Checked Then
+            PassFilterMulti(datagridview, strFilter)
+            Exit Sub
+        End If
+        Dim i As Integer = 0
+        Dim j As Integer = 0
+        Dim jk As Integer = 0
+        Dim kj As Integer
+        Dim wr As Integer = 0
+        Dim containStr As Boolean = False
+        ' Row indexes we'll remove later on.
+        Dim deleteIndexList As List(Of Integer) = New List(Of Integer)
+
+        Dim strNewFilter As String = ""
+        Select Case cboCriteria.Text
+            Case Is = "="
+                strNewFilter = strFilter
+            Case Is = "Containing"
+                strNewFilter = "*" + strFilter + "*"
+            Case Is = "Start With"
+                strNewFilter = strFilter + "*"
+            Case Is = "End with"
+                strNewFilter = "*" + strFilter
+        End Select
+        While i < datagridview.Rows.Count
+            j = 0
+            containStr = False
+            kj = SelColumn.Value - 1
+            jk = SelColumn.Value - 1
+            For j = kj To jk
+                If Not datagridview.Item(j, i).Value Is DBNull.Value Or Nothing Then
+                    If LCase(datagridview.Item(j, i).Value) Like LCase(strNewFilter) Then
+                        containStr = True
+                        wr = wr + 1
+                        Exit For
+                    End If
+
+                End If
+            Next j
+            If Not containStr Then
+                ' Don't remove rows here or your row indexes will get out of whack!
+                ' datagridview.Rows.RemoveAt(i)
+                deleteIndexList.Add(i)
+            End If
+            i = i + 1
+        End While
+        ' Remove rows by reversed row index order (highest removed first) to keep the indexes in whack.
+        deleteIndexList.Reverse()
+        On Error Resume Next
+        For Each idx As Integer In deleteIndexList
+            datagridview.Rows.RemoveAt(idx)
+        Next
+    End Sub
+    Private Sub PassFilterMulti(ByRef datagridview As DataGridView, ByVal strFilter As String)
+        Dim i As Integer = 0
+        Dim j As Integer = 0
+        Dim jk As Integer = 0
+        Dim kj As Integer
+        Dim wr As Integer = 0
+        Dim containStr As Boolean = False
+        ' Row indexes we'll remove later on.
+        Dim deleteIndexList As List(Of Integer) = New List(Of Integer)
+
+        'Dim strNewFilter As String = ""
+        'Select Case cboCriteria.Text
+        '    Case Is = "="
+        '        strNewFilter = strFilter
+        '    Case Is = "Containing"
+        '        strNewFilter = "*" + strFilter + "*"
+        '    Case Is = "Start With"
+        '        strNewFilter = strFilter + "*"
+        '    Case Is = "End with"
+        '        strNewFilter = "*" + strFilter
+        'End Select
+        While i < datagridview.Rows.Count
+            j = 0
+            containStr = False
+            kj = SelColumn.Value - 1
+            jk = SelColumn.Value - 1
+            For j = kj To jk
+                If Not datagridview.Item(j, i).Value Is DBNull.Value Or Nothing Then
+                    If LCase(strFilter) Like "*" + LCase(datagridview.Item(j, i).Value) + "*" Then
+                        containStr = True
+                        wr = wr + 1
+                        Exit For
+                    End If
+
+                End If
+            Next j
+            If Not containStr Then
+                ' Don't remove rows here or your row indexes will get out of whack!
+                ' datagridview.Rows.RemoveAt(i)
+                deleteIndexList.Add(i)
+            End If
+            i = i + 1
+        End While
+        tFilter.Text = ""
+        ' Remove rows by reversed row index order (highest removed first) to keep the indexes in whack.
+        deleteIndexList.Reverse()
+        For Each idx As Integer In deleteIndexList
+            datagridview.Rows.RemoveAt(idx)
+        Next
+    End Sub
+
+    Private Sub cmdFind_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmdFind.Click
+        On Error GoTo handler
+        Dim x As Integer = 0
+
+        Dim myStyle As New DataGridViewCellStyle
+        'Dim myStyle1 As New DataGridViewCellStyle
+        myStyle.ForeColor = Color.White
+        myStyle.BackColor = Color.Red
+        'myStyle1.ForeColor = Color.Black
+        Dim ij As Integer = 0
+        Dim jk As Integer = 0
+        Dim kj As Integer
+        Dim strNewFilter As String = ""
+        Select Case cboCriteria.Text
+            Case Is = "="
+                strNewFilter = tFilter.Text
+            Case Is = "Containing"
+                strNewFilter = "*" + tFilter.Text + "*"
+            Case Is = "Start With"
+                strNewFilter = tFilter.Text + "*"
+            Case Is = "End with"
+                strNewFilter = "*" + tFilter.Text
+        End Select
+
+        While x < DGridList.Rows.Count
+            Dim y As Integer = 0
+            kj = SelColumn.Value - 1
+            jk = SelColumn.Value - 1
+            For y = kj To jk
+                If Not DGridList.Item(y, x).Value Is DBNull.Value Or Nothing Then
+                    If LCase(DGridList.Item(y, x).Value) Like LCase(strNewFilter) Then
+                        DGridList.Item(y, x).Style = myStyle
+                        ij = ij + 1
+                    End If
+                End If
+            Next y
+            x = x + 1
+        End While
+        On Error Resume Next
+        If ij = 0 Then
+            MessageBox.Show("Match Not Found!")
+        Else
+            MessageBox.Show("(" + ij.ToString + ") Match Found")
+            DGridList.CurrentCell = DGridList.Rows(x).Cells("tName")
+            DGridList.Focus()
+
+        End If
+
+        Exit Sub
+        Resume
+handler:
+        MsgBox(Err.Description, MsgBoxStyle.Information, strApptitle)
+    End Sub
+    Private Sub cmdRefresh2_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmdRefresh2.Click
+        oLoadDbgrid()
+        cmdSave.Enabled = True
+    End Sub
+    Private Sub lnkShowFilterOption_LinkClicked(ByVal sender As System.Object, ByVal e As System.Windows.Forms.LinkLabelLinkClickedEventArgs) Handles lnkShowFilterOption.LinkClicked
+        If PanFilter.Visible = False Then
+            lnkShowFilterOption.Text = "Hide Filter Option"
+            'cmdSave.Enabled = False
+        Else
+            lnkShowFilterOption.Text = "Show Filter Option"
+        End If
+        PanFilter.Visible = Not PanFilter.Visible
+    End Sub
+
+    Private Sub cmdCloseFilter_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmdCloseFilter.Click
+        PanFilter.Visible = False
+        lnkShowFilterOption.Text = "Show Filter Option"
+    End Sub
+
+    Private Sub cmdExport_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cmdExport.Click
+        On Error GoTo handler
+        Dim oXL As Object
+        oXL = CreateObject("Excel.Application")
+        oXL.Visible = True
+        oXL.Workbooks.Add()
+
+        oXL.Sheets(1).Select()
+
+        oXL.Visible = True
+        Dim j, i As Integer
+        ' Format A1:D1 as bold, vertical alignment = center.
+        With oXL.Sheets(1).Range("A1", "AZ1")
+            .Font.Bold = True
+            ' .VerticalAlignment = Excel.XlVAlign.xlVAlignCenter
+        End With
+
+        Dim jk As Integer = 0
+        For j = 0 To DGridList.ColumnCount - 1
+            oXL.Cells(1, j + 1) = DGridList.Columns(j).Name.ToString()
+        Next
+        On Error Resume Next
+        For i = 0 To DGridList.RowCount - 1
+            ' If DGridList.Rows(i).Selected = True Then
+            For j = 0 To DGridList.ColumnCount - 1
+                If IsNumeric(DGridList(j, i).Value) Then
+                    oXL.Cells(jk + 2, j + 1) = "'" + DGridList(j, i).Value.ToString()
+                Else
+                    oXL.Cells(jk + 2, j + 1) = DGridList(j, i).Value.ToString()
+                End If
+
+            Next
+            jk = jk + 1
+            'End If
+        Next
+
+        ' Make sure Excel is visible and give the user control
+        ' of Excel's lifetime.
+
+        oXL.UserControl = True
+
+        ' Make sure that you release object references.
+        oXL.Quit()
+        oXL = Nothing
+
+        Exit Sub
+        Resume
+handler:
+        MsgBox(Err.Description, vbInformation, strApptitle)
+    End Sub
+    Private Sub PanFilter_MouseDown(ByVal sender As Object, ByVal e As System.Windows.Forms.MouseEventArgs) Handles PanFilter.MouseDown
+        StoredX = e.X
+        StoredY = e.Y
+        PanFilter.Cursor = Cursors.NoMove2D
+    End Sub
+    Private Sub PanFilter_MouseMove(ByVal sender As Object, ByVal e As System.Windows.Forms.MouseEventArgs) Handles PanFilter.MouseMove
+        If e.Button = Windows.Forms.MouseButtons.Left Then
+            PanFilter.Top = PanFilter.Top - (StoredY - e.Y)
+            PanFilter.Left = PanFilter.Left - (StoredX - e.X)
+        End If
+        PanFilter.Cursor = Cursors.Default
+    End Sub
+
+    Private Function DoAdvanceSearch(ByVal theStr As String) As String
+        On Error GoTo errh
+        Dim j As Integer = 0
+        DoAdvanceSearch = ""
+        Dim NewStr As String = ""
+        For j = 1 To Len(theStr)
+            If Asc(Mid(theStr, j, 1)) < 32 Or Asc(Mid(theStr, j, 1)) > 126 Then
+            Else
+                NewStr = NewStr + Mid(theStr, j, 1)
+            End If
+        Next
+        If theStr = NewStr Then
+            DoAdvanceSearch = "@@%%%%%%DDTDTT!!!!!!!!!!!&&***********1223334344"
+        Else
+            DoAdvanceSearch = NewStr
+        End If
+        Exit Function
+errh:
+        MsgBox(Err.Description)
+    End Function
+
+    Private Sub lnkCleanData_LinkClicked(ByVal sender As System.Object, ByVal e As System.Windows.Forms.LinkLabelLinkClickedEventArgs) Handles lnkCleanData.LinkClicked
+        On Error GoTo handler
+
+        DGridList.Enabled = False
+        Dim myStyle As New DataGridViewCellStyle
+        myStyle.BackColor = Color.Yellow
+        myStyle.ForeColor = Color.Red
+
+        Dim i As Integer
+        Dim j As Integer
+        Dim h As Integer
+        Dim errh As Integer = 0
+        Dim AdvString As String = ""
+        For i = 0 To DGridList.RowCount - 1
+            For j = 0 To DGridList.Columns.Count - 1
+                DGridList.Item(j, i).Value = Trim(DGridList.Item(j, i).Value)
+                If Len(DGridList.Item(j, i).Value) > 0 Then
+                    AdvString = DoAdvanceSearch(DGridList.Item(j, i).Value)
+                    If AdvString = "@@%%%%%%DDTDTT!!!!!!!!!!!&&***********1223334344" Then
+                    Else
+                        DGridList.Item(j, i).Value = AdvString
+                        DGridList.Item(j, i).Style = myStyle
+                        errh = errh + 1
+                    End If
+
+                End If
+            Next j
+        Next i
+
+        If errh > 0 Then
+            MsgBox(errh.ToString + " entries Cleaned")
+        Else
+            MsgBox("Noting to Clean")
+
+        End If
+
+        DGridList.Enabled = True
+
+        Exit Sub
+        Resume
+handler:
+        If Err.Number = 5 Or Err.Number = 13 Then
+            Resume Next
+        Else
+            MsgBox(Err.Description, MsgBoxStyle.Information, strApptitle)
+            DGridList.Enabled = True
+        End If
+
+    End Sub
+
+    '    Function GetNewSn() As Integer
+    '        On Error GoTo handler
+    '        Dim cnSQL As SqlConnection = New SqlConnection(strConnect)
+    '        Dim cmSQL As SqlCommand = cnSQL.CreateCommand
+    '        Dim drSQL As SqlDataReader
+    '        GetNewSn = 1
+
+    '        cnSQL.Open()
+    '        cmSQL.CommandText = "SELECT ISNULL(MAX(Sn),0)+1 AS Sn FROM RegisterSch"
+    '        cmSQL.CommandType = CommandType.Text
+    '        cmSQL.ExecuteNonQuery()
+
+    '        drSQL = cmSQL.ExecuteReader()
+    '        If drSQL.Read Then
+    '            GetNewSn = drSQL.Item("Sn")
+    '        End If
+    '        cmSQL.Connection.Close()
+    '        cmSQL.Dispose()
+    '        drSQL.Close()
+    '        cnSQL.Close()
+    '        cnSQL.Dispose()
+
+
+    '        Exit Function
+    '        Resume
+    'handler:
+    '        MsgBox(Err.Description, vbInformation, strApptitle)
+    '    End Function
+    Private Sub DGridList_RowEnter(ByVal sender As Object, ByVal e As System.Windows.Forms.DataGridViewCellEventArgs) Handles DGridList.RowEnter
+        DGridList.Item("TheActive", e.RowIndex).Value = True
+    End Sub
+    '    Private Sub LoadCurrencyType()
+    '        On Error GoTo handler
+
+    '        Dim cnSQL1 As SqlConnection = New SqlConnection(strConnect)
+    '        Dim cmSQL1 As SqlCommand = cnSQL1.CreateCommand
+    '        Dim drSQL1 As SqlDataReader
+    '        cnSQL1.Open()
+
+    '        Currency.Items.Clear()
+
+    '        cmSQL1.CommandText = "SELECT DISTINCT Currency FROM CurrencyType ORDER BY Currency"
+    '        cmSQL1.CommandType = CommandType.Text
+    '        drSQL1 = cmSQL1.ExecuteReader()
+
+    '        Do While drSQL1.Read
+    '            Currency.Items.Add(drSQL1.Item("Currency"))
+    '        Loop
+
+    '        cmSQL1.Connection.Close()
+    '        cmSQL1.Dispose()
+    '        drSQL1.Close()
+    '        cnSQL1.Close()
+    '        cnSQL1.Dispose()
+
+    '        Exit Sub
+    'handler:
+    '        'If Err.Number = 91 Then
+    '        '    Resume Next
+    '        'Else
+    '        MsgBox(Err.Description, MsgBoxStyle.Information, strApptitle)
+    '        'End If
+    '    End Sub
+
+    Private Sub lnkCleanCommas_LinkClicked(ByVal sender As System.Object, ByVal e As System.Windows.Forms.LinkLabelLinkClickedEventArgs) Handles lnkCleanCommas.LinkClicked
+        Dim myStyle As New DataGridViewCellStyle
+        myStyle.BackColor = Color.Yellow
+        myStyle.ForeColor = Color.Red
+
+        Dim i As Integer
+        Dim j As Integer
+        Dim errh As Integer = 0
+        Dim AdvString As String = ""
+        For i = 0 To DGridList.RowCount - 1
+            For j = 0 To DGridList.Columns.Count - 1
+                If DGridList.Item(j, i).Value Is Nothing Or IsDBNull(DGridList.Item(j, i).Value) Then
+
+                Else
+
+
+                    DGridList.Item(j, i).Value = Trim(DGridList.Item(j, i).Value)
+                    If Len(DGridList.Item(j, i).Value) > 0 Then
+                        AdvString = DGridList.Item(j, i).Value
+
+                        Dim jk As Integer = 0
+                        Dim NewStr As String = ""
+                        For jk = 1 To Len(AdvString)
+                            If Asc(Mid(AdvString, jk, 1)) = 44 Or Asc(Mid(AdvString, jk, 1)) = 45 Then ' , and -
+
+                            Else
+                                NewStr = NewStr + Mid(AdvString, jk, 1)
+                            End If
+                        Next
+                        'If NewStr = "" Then
+                        'Else
+                        If AdvString = NewStr Then
+                        Else
+                            DGridList.Item(j, i).Value = NewStr
+                            DGridList.Item(j, i).Style = myStyle
+                            errh = errh + 1
+                        End If
+                        'End If
+                    End If
+                End If
+            Next j
+        Next i
+
+        If errh > 0 Then
+            MsgBox(errh.ToString + " entries Cleaned")
+        Else
+            MsgBox("Noting to Clean")
+
+        End If
+
+        Exit Sub
+        Resume
+handler:
+        If Err.Number = 5 Or Err.Number = 13 Then
+            Resume Next
+        Else
+            MsgBox(Err.Description, MsgBoxStyle.Information, strApptitle)
+        End If
+    End Sub
+
+    Private Sub lnkEntryLenght_LinkClicked(ByVal sender As System.Object, ByVal e As System.Windows.Forms.LinkLabelLinkClickedEventArgs) Handles lnkEntryLenght.LinkClicked
+        Dim myStyle As New DataGridViewCellStyle
+        myStyle.ForeColor = Color.Red
+
+        On Error Resume Next
+        Dim dCount As Integer = 0
+        Dim ik As Integer = 0
+
+        For ik = 0 To DGridList.RowCount - 1
+            'leave out RefNo and IDNumber
+            For i = 2 To DGridList.ColumnCount - 1
+                'If DGridList.Columns(i).Name = "City1" Then
+                '    If Len(DGridList.Item("City1", ik).Value) + Len(DGridList.Item("Country", ik).Value) > 35 Then
+                '        DGridList.Item(i, ik).Style = myStyle
+                '        DGridList.Item(i, ik).Value = Mid(DGridList.Item(i, ik).Value, 1, 35 - Len(DGridList.Item("Country", ik).Value))
+                '        dCount = dCount + 1
+                '    End If
+                'ElseIf DGridList.Columns(i).Name = "BankCity" Then
+                '    If Len(DGridList.Item("BankCity", ik).Value) + Len(DGridList.Item("BankCountry", ik).Value) > 35 Then
+                '        DGridList.Item(i, ik).Style = myStyle
+                '        DGridList.Item(i, ik).Value = Mid(DGridList.Item(i, ik).Value, 1, 35 - Len(DGridList.Item("BankCountry", ik).Value))
+                '        dCount = dCount + 1
+                '    End If
+                'ElseIf DGridList.Columns(i).Name = "IntermediateBankCity" Then
+                '    If Len(DGridList.Item("IntermediateBankCity", ik).Value) + Len(DGridList.Item("IntermediateBankCountry", ik).Value) > 35 Then
+                '        DGridList.Item(i, ik).Style = myStyle
+                '        DGridList.Item(i, ik).Value = Mid(DGridList.Item(i, ik).Value, 1, 35 - Len(DGridList.Item("IntermediateBankCountry", ik).Value))
+                '        dCount = dCount + 1
+                '    End If
+                'Else
+                If Len(DGridList.Item(i, ik).Value) > DGridList.Columns(i).FillWeight Then
+                    DGridList.Item(i, ik).Style = myStyle
+                    DGridList.Item(i, ik).Value = Mid(DGridList.Item(i, ik).Value, 1, DGridList.Columns(i).FillWeight)
+                    dCount = dCount + 1
+                End If
+                'End If
+            Next
+        Next
+
+        If dCount > 0 Then
+            MsgBox(dCount.ToString + " Entry Found and Truncated", MsgBoxStyle.Information, strApptitle)
+        Else
+            MsgBox("Successfull!! No Entry Found", MsgBoxStyle.Information, strApptitle)
+        End If
+
+    End Sub
+    Private Sub LoadCurrencyType()
+        On Error GoTo handler
+
+        Dim cnSQL1 As SqlConnection = New SqlConnection(strConnect)
+        Dim cmSQL1 As SqlCommand = cnSQL1.CreateCommand
+        Dim drSQL1 As SqlDataReader
+        cnSQL1.Open()
+
+        Currency.Items.Clear()
+
+        cmSQL1.CommandText = "SELECT DISTINCT Currency FROM CurrencyType ORDER BY Currency"
+        cmSQL1.CommandType = CommandType.Text
+        drSQL1 = cmSQL1.ExecuteReader()
+
+        Do While drSQL1.Read
+            Currency.Items.Add(drSQL1.Item("Currency"))
+        Loop
+
+        cmSQL1.Connection.Close()
+        cmSQL1.Dispose()
+        drSQL1.Close()
+        cnSQL1.Close()
+        cnSQL1.Dispose()
+
+        Exit Sub
+handler:
+        'If Err.Number = 91 Then
+        '    Resume Next
+        'Else
+        MsgBox(Err.Description, MsgBoxStyle.Information, strApptitle)
+        'End If
+    End Sub
+
+End Class

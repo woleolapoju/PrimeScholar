@@ -1,0 +1,13 @@
+﻿In PAYMENT & PaymentBlank table
+Increase field length to
+
+1	DebitAcctNo	nvarchar	35	1
+_______________________________________________________________
+
+In InsertPayment SP
+Increase Width to 
+
+ @DebitAcctNo 	[nvarchar](35),
+
+ _____________________________________________________________
+
