@@ -47,7 +47,7 @@ Module PrimeModule
     Sub New()
         sysOwner = "MegaHit Systems, Abuja"
         AppPath = IIf(Len(My.Application.Info.DirectoryPath) <= 3, My.Application.Info.DirectoryPath, My.Application.Info.DirectoryPath + "\")
-        ' AppPath = "c:\Applications\PrimeScholar\"
+        AppPath = "c:\Applications\PrimeScholar\"
         MSAccessCn = "Provider=Microsoft.jet.oledb.4.0;Data Source=" + AppPath + "ConfigDir\Config.gif;Jet OLEDB:Database Password=secret" ' & 
         InitialiseEntireSystem()
     End Sub
